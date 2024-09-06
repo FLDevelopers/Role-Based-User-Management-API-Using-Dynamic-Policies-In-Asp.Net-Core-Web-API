@@ -66,15 +66,21 @@ namespace WebApiWithRoleAuthentication.Controllers
             var user = await userManager.FindByIdAsync(id);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = "User not found." });
             }
+
+            var isAdmin = await userManager.IsInRoleAsync(user, "Admin");
+            if (isAdmin)
+            {
+                return BadRequest(new { message = "Admin cannot be deleted." });
+            }
+        
             var result = await userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                return Ok(new {message = "User deleted successfully."});
+                return Ok(new { message = "User deleted successfully." });
             }
             return BadRequest(result.Errors);
-
         }
 
         [HttpGet("roles")]
