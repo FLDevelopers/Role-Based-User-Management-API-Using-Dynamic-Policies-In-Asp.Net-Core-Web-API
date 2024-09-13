@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,16 +18,18 @@ namespace WebApiWithRoleAuthentication.Controllers
             this.userManager = userManager;
         }
 
-        [HttpGet("user-info")]
+        [HttpPost("user-info")]
         public async Task<IActionResult> GetUserInfo([FromBody] string email)
         {
             var user = await userManager.FindByEmailAsync(email);
-            if (user == null) 
+            if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
 
-            return Ok(new {user.Id, user.Email, user.PhoneNumber,});
+            var roles = await userManager.GetRolesAsync(user);
+
+            return Ok(new { user.Id, user.Email, user.PhoneNumber, roles });
         }
 
         [HttpPut("user-info")]
@@ -36,7 +38,7 @@ namespace WebApiWithRoleAuthentication.Controllers
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
 
             user.Email = model.Email;
@@ -44,9 +46,9 @@ namespace WebApiWithRoleAuthentication.Controllers
             user.PhoneNumber = model.PhoneNumber;
 
             var result = await userManager.UpdateAsync(user);
-            if (result.Succeeded) 
+            if (result.Succeeded)
             {
-                return Ok(new { message="User Info Updated Successfully." });
+                return Ok(new { message = "User Info Updated Successfully." });
             }
 
             return BadRequest(result.Errors);
@@ -58,13 +60,13 @@ namespace WebApiWithRoleAuthentication.Controllers
             var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
 
             var result = await userManager.DeleteAsync(user);
-            if (result.Succeeded) 
+            if (result.Succeeded)
             {
-                return Ok(new {message="User deleted successfully."});
+                return Ok(new { message = "User deleted successfully." });
             }
 
             return BadRequest(result.Errors);
@@ -76,12 +78,12 @@ namespace WebApiWithRoleAuthentication.Controllers
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
 
             var result = await userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
 
-            if (result.Succeeded) 
+            if (result.Succeeded)
             {
                 return Ok(new { message = "Password changed successfully." });
             }
