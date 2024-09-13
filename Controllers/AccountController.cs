@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -27,23 +27,23 @@ namespace WebApiWithRoleAuthentication.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] Register model)
         {
-            if (!isValidEmail(model.Email)) 
+            if (!isValidEmail(model.Email))
             {
-                return BadRequest(new {message = "Invalid email format." });
+                return BadRequest(new { message = "Invalid email format." });
             }
             var existingUser = await _userManager.FindByEmailAsync(model.Email);
-            if(existingUser != null)
+            if (existingUser != null)
             {
                 return BadRequest(new { message = "Email already exists." });
             }
 
+            var user = new IdentityUser { UserName = model.Email, Email = model.Email, PhoneNumber = model.phoneNumber };
 
-            var user = new IdentityUser { UserName = model.Email, Email = model.Email, PhoneNumber = model.phoneNumber  };
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                if(!await _roleManager.RoleExistsAsync("User"))
+                if (!await _roleManager.RoleExistsAsync("User"))
                 {
                     var roleResult = await _roleManager.CreateAsync(new IdentityRole("User"));
                     if (!roleResult.Succeeded)
@@ -59,7 +59,7 @@ namespace WebApiWithRoleAuthentication.Controllers
             }
 
             var errors = result.Errors.Select(e => e.Description);
-            return BadRequest(new {message = "Registration Failed.",errors});
+            return BadRequest(new { message = "Registration Failed.", errors });
         }
 
         [HttpPost("login")]
